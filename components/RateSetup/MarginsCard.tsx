@@ -100,7 +100,7 @@ export const MarginsCard: React.FC<MarginsCardProps> = ({
                     <View style={styles.marginControlRow}>
                         <TouchableOpacity
                             style={styles.adjustButton}
-                            onPress={() => onMarginUpdate("silver999Margin", silver999Margin - 1)}
+                            onPress={() => onMarginUpdate("silver999Margin", silver999Margin - 10)}
                         >
                             <Text style={styles.adjustButtonText}>−</Text>
                         </TouchableOpacity>
@@ -117,7 +117,7 @@ export const MarginsCard: React.FC<MarginsCardProps> = ({
 
                         <TouchableOpacity
                             style={styles.adjustButton}
-                            onPress={() => onMarginUpdate("silver999Margin", silver999Margin + 1)}
+                            onPress={() => onMarginUpdate("silver999Margin", silver999Margin + 10)}
                         >
                             <Text style={styles.adjustButtonText}>+</Text>
                         </TouchableOpacity>
@@ -130,7 +130,7 @@ export const MarginsCard: React.FC<MarginsCardProps> = ({
                     <View style={styles.marginControlRow}>
                         <TouchableOpacity
                             style={styles.adjustButton}
-                            onPress={() => onMarginUpdate("silver925Margin", silver925Margin - 1)}
+                            onPress={() => onMarginUpdate("silver925Margin", silver925Margin - 10)}
                         >
                             <Text style={styles.adjustButtonText}>−</Text>
                         </TouchableOpacity>
@@ -147,7 +147,7 @@ export const MarginsCard: React.FC<MarginsCardProps> = ({
 
                         <TouchableOpacity
                             style={styles.adjustButton}
-                            onPress={() => onMarginUpdate("silver925Margin", silver925Margin + 1)}
+                            onPress={() => onMarginUpdate("silver925Margin", silver925Margin + 10)}
                         >
                             <Text style={styles.adjustButtonText}>+</Text>
                         </TouchableOpacity>

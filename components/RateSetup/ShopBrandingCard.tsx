@@ -73,7 +73,7 @@ export const ShopBrandingCard: React.FC<ShopBrandingCardProps> = ({
                                 <Image
                                     source={{ uri: logoBase64 }}
                                     style={styles.logoImage}
-                                    resizeMode="cover"
+                                    resizeMode="contain"
                                 />
                                 <TouchableOpacity
                                     style={styles.deleteBadge}

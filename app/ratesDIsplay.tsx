@@ -422,8 +422,8 @@ const Index = () => {
                   (calculatedRates.gold999.makingCharges ?? 0) > 0 && (
                     <Text style={styles.makingChargesBig}>
                       MC:{" "}
-                      {config.makingChargesType === "percentage"
-                        ? `${config.makingChargesValue}%`
+                      {config.makingChargesGoldType === "percentage"
+                        ? `${config.makingChargesGoldValue}%`
                         : `${(
                           ((calculatedRates.gold999.makingCharges ?? 0) /
                             calculatedRates.gold999.priceWithGST) *
@@ -475,8 +475,8 @@ const Index = () => {
                   (calculatedRates.gold916.makingCharges ?? 0) > 0 && (
                     <Text style={styles.makingChargesBig}>
                       MC:{" "}
-                      {config.makingChargesType === "percentage"
-                        ? `${config.makingChargesValue}%`
+                      {config.makingChargesGoldType === "percentage"
+                        ? `${config.makingChargesGoldValue}%`
                         : `${(
                           ((calculatedRates.gold916.makingCharges ?? 0) /
                             calculatedRates.gold916.priceWithGST) *
@@ -524,6 +524,19 @@ const Index = () => {
                 >
                   {config.silver999Label}
                 </Text>
+                {config.makingChargesEnabled &&
+                  (calculatedRates.silver999.makingCharges ?? 0) > 0 && (
+                    <Text style={styles.makingChargesBig}>
+                      MC:{" "}
+                      {config.makingChargesSilverType === "percentage"
+                        ? `${config.makingChargesSilverValue}%`
+                        : `${(
+                          ((calculatedRates.silver999.makingCharges ?? 0) /
+                            calculatedRates.silver999.priceWithGST) *
+                          100
+                        ).toFixed(2)}%`}
+                    </Text>
+                  )}
               </View>
               <Text
                 style={[
@@ -563,6 +576,19 @@ const Index = () => {
                 >
                   {config.silver925Label}
                 </Text>
+                {config.makingChargesEnabled &&
+                  (calculatedRates.silver925.makingCharges ?? 0) > 0 && (
+                    <Text style={styles.makingChargesBig}>
+                      MC:{" "}
+                      {config.makingChargesSilverType === "percentage"
+                        ? `${config.makingChargesSilverValue}%`
+                        : `${(
+                          ((calculatedRates.silver925.makingCharges ?? 0) /
+                            calculatedRates.silver925.priceWithGST) *
+                          100
+                        ).toFixed(2)}%`}
+                    </Text>
+                  )}
               </View>
               <Text
                 style={[

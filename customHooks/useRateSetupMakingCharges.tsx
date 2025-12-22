@@ -1,6 +1,4 @@
-import { RateConfig, useRateConfig } from "../contexts/RateConfigContext";
-
-export type MakingChargesType = "percentage" | "perGram";
+import { MakingChargesType, RateConfig, useRateConfig } from "../contexts/RateConfigContext";
 
 export const useRateSetupMakingCharges = (
   externalConfig?: RateConfig,
@@ -15,20 +13,33 @@ export const useRateSetupMakingCharges = (
     activeUpdate({ makingChargesEnabled: next });
   };
 
-  const handleChangeMakingType = (type: MakingChargesType) => {
-    activeUpdate({ makingChargesType: type });
+  const handleChangeMakingType = (
+    metal: "gold" | "silver",
+    type: MakingChargesType
+  ) => {
+    if (metal === "gold") {
+      activeUpdate({ makingChargesGoldType: type });
+    } else {
+      activeUpdate({ makingChargesSilverType: type });
+    }
   };
 
-  const handleMakingValueChange = (text: string) => {
+  const handleMakingValueChange = (metal: "gold" | "silver", text: string) => {
     const numeric = parseFloat(text.replace(/[^0-9.]/g, ""));
     const safe = isNaN(numeric) ? 0 : numeric;
-    activeUpdate({ makingChargesValue: safe });
+    if (metal === "gold") {
+      activeUpdate({ makingChargesGoldValue: safe });
+    } else {
+      activeUpdate({ makingChargesSilverValue: safe });
+    }
   };
 
   return {
     makingChargesEnabled: activeConfig.makingChargesEnabled,
-    makingChargesType: activeConfig.makingChargesType,
-    makingChargesValue: activeConfig.makingChargesValue,
+    makingChargesGoldType: activeConfig.makingChargesGoldType,
+    makingChargesGoldValue: activeConfig.makingChargesGoldValue,
+    makingChargesSilverType: activeConfig.makingChargesSilverType,
+    makingChargesSilverValue: activeConfig.makingChargesSilverValue,
     handleToggleMakingCharges,
     handleChangeMakingType,
     handleMakingValueChange,

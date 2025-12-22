@@ -29,8 +29,10 @@ export interface RateConfig {
   silver999Margin: number;
   silver925Margin: number;
   makingChargesEnabled: boolean;
-  makingChargesType: MakingChargesType;
-  makingChargesValue: number;
+  makingChargesGoldType: MakingChargesType;
+  makingChargesGoldValue: number;
+  makingChargesSilverType: MakingChargesType;
+  makingChargesSilverValue: number;
   notifications: NotificationConfig[];
   ratesFrozen: boolean;
   frozenAt: string | null;
@@ -79,8 +81,10 @@ const DEFAULT_CONFIG: RateConfig = {
   silver999Margin: 0,
   silver925Margin: 0,
   makingChargesEnabled: false,
-  makingChargesType: "percentage",
-  makingChargesValue: 0,
+  makingChargesGoldType: "percentage",
+  makingChargesGoldValue: 0,
+  makingChargesSilverType: "percentage",
+  makingChargesSilverValue: 0,
   notifications: [
     { id: 1, enabled: false, message: "" },
     { id: 2, enabled: false, message: "" },
@@ -136,14 +140,18 @@ export const useRateConfig = () => {
 export const RateConfigProvider: React.FC<RateConfigProviderProps> = ({
   children,
 }) => {
-  const [config, setConfig] = useState<RateConfig>(DEFAULT_CONFIG);
+  const getDefaultConfig = (): RateConfig => JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+
+  const [config, setConfig] = useState<RateConfig>(getDefaultConfig());
 
   const loadConfig = async () => {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEY);
       if (json) {
         const data = JSON.parse(json);
-        setConfig({ ...DEFAULT_CONFIG, ...data });
+        // Deep merge logic or just overwrite. 
+        // Safer to start with default and overlay data
+        setConfig({ ...getDefaultConfig(), ...data });
       }
     } catch (error) {
       console.warn("Failed to load rate config:", error);
@@ -162,8 +170,9 @@ export const RateConfigProvider: React.FC<RateConfigProviderProps> = ({
 
   const resetConfig = async () => {
     try {
-      setConfig(DEFAULT_CONFIG);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CONFIG));
+      const freshConfig = getDefaultConfig();
+      setConfig(freshConfig);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(freshConfig));
     } catch (error) {
       console.warn("Failed to reset rate config:", error);
     }

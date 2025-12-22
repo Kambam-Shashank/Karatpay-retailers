@@ -30,11 +30,15 @@ export interface CalculatedRates {
   silver999: {
     basePrice: number;
     priceWithMargin: number;
+    priceWithGST: number;
+    makingCharges?: number;
     finalPrice: number;
   };
   silver925: {
     basePrice: number;
     priceWithMargin: number;
+    priceWithGST: number;
+    makingCharges?: number;
     finalPrice: number;
   };
 }
@@ -70,8 +74,8 @@ export const useRateCalculations = (
           priceWithGST: 0,
           finalPrice: 0,
         },
-        silver999: { basePrice: 0, priceWithMargin: 0, finalPrice: 0 },
-        silver925: { basePrice: 0, priceWithMargin: 0, finalPrice: 0 },
+        silver999: { basePrice: 0, priceWithMargin: 0, priceWithGST: 0, finalPrice: 0 },
+        silver925: { basePrice: 0, priceWithMargin: 0, priceWithGST: 0, finalPrice: 0 },
       } as CalculatedRates;
     }
     const gold999Base =
@@ -87,7 +91,7 @@ export const useRateCalculations = (
       wsData?.gold ||
       wsData?.rate ||
       wsData?.price ||
-      (wsData && wsData["999"]) || 
+      (wsData && wsData["999"]) ||
       0;
     const gold995Base = externalGoldPrice
       ? externalGoldPrice * 0.998
@@ -120,14 +124,20 @@ export const useRateCalculations = (
     const gold995MarginPerGram = config.gold22kMargin;
     const gold916MarginPerGram = config.gold22kMargin;
 
-    const gold999WithMargin = gold999Base + gold999MarginPerGram;
-    const gold995WithMargin = gold995Base + gold995MarginPerGram;
-    const gold916WithMargin = gold916Base + gold916MarginPerGram;
-    const silver999WithMargin = silver999Base + config.silver999Margin;
-    const silver925WithMargin = silver925Base + config.silver925Margin;
+    // Rounding helper
+    const roundTo = (num: number, multiple: number) => {
+      if (multiple === 0) return num;
+      return Math.round(num / multiple) * multiple;
+    };
 
-    // If data comes from WebSocket (Karatpay), it often includes taxes or margins in 'sell_price'.
-    // We assume Karatpay rates are either Final or we should not add additional GST unless the user toggles it.
+    // Apply specific rounding: Gold -> 50, Silver -> 10
+    const gold999WithMargin = roundTo(gold999Base + gold999MarginPerGram, 50);
+    const gold995WithMargin = roundTo(gold995Base + gold995MarginPerGram, 50);
+    const gold916WithMargin = roundTo(gold916Base + gold916MarginPerGram, 50);
+    const silver999WithMargin = roundTo(silver999Base + config.silver999Margin, 10);
+    const silver925WithMargin = roundTo(silver925Base + config.silver925Margin, 10);
+
+
     const isKaratpayData = !!wsData && (
       "gold_999" in wsData ||
       "sell_price_999" in wsData ||
@@ -156,25 +166,37 @@ export const useRateCalculations = (
     let gold999MakingCharges = 0;
     let gold995MakingCharges = 0;
     let gold916MakingCharges = 0;
+    let silver999MakingCharges = 0;
+    let silver925MakingCharges = 0;
 
     if (config.makingChargesEnabled) {
-      if (config.makingChargesType === "percentage") {
+      if (config.makingChargesGoldType === "percentage") {
         gold999MakingCharges =
-          gold999WithGST * (config.makingChargesValue / 100);
+          gold999WithGST * (config.makingChargesGoldValue / 100);
         gold995MakingCharges =
-          gold995WithGST * (config.makingChargesValue / 100);
+          gold995WithGST * (config.makingChargesGoldValue / 100);
         gold916MakingCharges =
-          gold916WithGST * (config.makingChargesValue / 100);
+          gold916WithGST * (config.makingChargesGoldValue / 100);
       } else {
-        gold999MakingCharges = config.makingChargesValue;
-        gold995MakingCharges = config.makingChargesValue;
-        gold916MakingCharges = config.makingChargesValue;
+        gold999MakingCharges = config.makingChargesGoldValue;
+        gold995MakingCharges = config.makingChargesGoldValue;
+        gold916MakingCharges = config.makingChargesGoldValue;
+      }
+
+      if (config.makingChargesSilverType === "percentage") {
+        silver999MakingCharges = silver999WithGST * (config.makingChargesSilverValue / 100);
+        silver925MakingCharges = silver925WithGST * (config.makingChargesSilverValue / 100);
+      } else {
+        silver999MakingCharges = config.makingChargesSilverValue;
+        silver925MakingCharges = config.makingChargesSilverValue;
       }
     }
 
     const gold999Final = gold999WithGST + gold999MakingCharges;
     const gold995Final = gold995WithGST + gold995MakingCharges;
     const gold916Final = gold916WithGST + gold916MakingCharges;
+    const silver999Final = silver999WithGST + silver999MakingCharges;
+    const silver925Final = silver925WithGST + silver925MakingCharges;
 
     return {
       gold999: {
@@ -207,12 +229,20 @@ export const useRateCalculations = (
       silver999: {
         basePrice: silver999Base,
         priceWithMargin: silver999WithMargin,
-        finalPrice: silver999WithGST,
+        priceWithGST: silver999WithGST,
+        makingCharges: config.makingChargesEnabled
+          ? silver999MakingCharges
+          : undefined,
+        finalPrice: silver999Final,
       },
       silver925: {
         basePrice: silver925Base,
         priceWithMargin: silver925WithMargin,
-        finalPrice: silver925WithGST,
+        priceWithGST: silver925WithGST,
+        makingCharges: config.makingChargesEnabled
+          ? silver925MakingCharges
+          : undefined,
+        finalPrice: silver925Final,
       },
     } as CalculatedRates;
   }, [

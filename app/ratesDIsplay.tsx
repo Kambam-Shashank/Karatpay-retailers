@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useRateConfig } from "../contexts/RateConfigContext";
 import { useAaravRates } from "../customHooks/useAaravRates";
+import { usePriceChange } from "../customHooks/usePriceChange";
 import { useRateCalculations } from "../customHooks/useRateCalculations";
 import useWebSocket, { GoldPriceData } from "../customHooks/useWebSocket";
 
@@ -24,6 +25,17 @@ const Index = () => {
 
   const { config } = useRateConfig();
   const { data: aaravRates } = useAaravRates();
+
+  // Console log Aarav API data
+  useEffect(() => {
+    console.log('=== AARAV API DATA ===>', {
+      silver: aaravRates.silver,
+      gold: aaravRates.gold,
+      silverWithGST: aaravRates.silverWithGST,
+      goldWithGST: aaravRates.goldWithGST,
+    });
+  }, [aaravRates]);
+
   const calculatedRates = useRateCalculations(
     cachedWsData,
     withGST,
@@ -32,6 +44,12 @@ const Index = () => {
     aaravRates.silverWithGST,
     false
   );
+
+  // Track price changes for all metals
+  const gold999Change = usePriceChange(calculatedRates.gold999.finalPrice);
+  const gold916Change = usePriceChange(calculatedRates.gold916.finalPrice);
+  const silver999Change = usePriceChange(calculatedRates.silver999.finalPrice);
+  const silver925Change = usePriceChange(calculatedRates.silver925.finalPrice);
 
   const {
     data: wsData,
@@ -59,6 +77,17 @@ const Index = () => {
     }
   }, [wsData, cachedWsData]);
 
+  // Console log calculated rates when they change
+  useEffect(() => {
+    console.log('=== CALCULATED RATES ===> ', {
+      withGST,
+      gold999: calculatedRates.gold999,
+      gold916: calculatedRates.gold916,
+      silver999: calculatedRates.silver999,
+      silver925: calculatedRates.silver925,
+    });
+  }, [calculatedRates, withGST]);
+
   const formatPricePerGram = (price: number) => {
     const decimals = config.priceDecimalPlaces ?? 0;
     const perGram = price / 10;
@@ -79,7 +108,12 @@ const Index = () => {
   };
 
   const onToggleGST = () => {
-    setWithGST(!withGST);
+    const newGSTState = !withGST;
+    console.log('=== GST TOGGLE PRESSED ===> ', {
+      previousState: withGST,
+      newState: newGSTState,
+    });
+    setWithGST(newGSTState);
   };
 
   const onShare = async () => {
@@ -90,6 +124,27 @@ const Index = () => {
     } catch (error: any) {
       console.error(error.message);
     }
+  };
+
+  const renderPriceChange = (changeInfo: ReturnType<typeof usePriceChange>) => {
+    if (!changeInfo.hasChanged) return null;
+
+    const changeColor = changeInfo.isIncrease ? "#00E676" : "#FF5252";
+    const arrow = changeInfo.isIncrease ? "↑" : "↓";
+    const changeAmount = Math.abs(changeInfo.change / 10).toFixed(
+      config.priceDecimalPlaces ?? 0
+    );
+
+    return (
+      <View style={styles.priceChangeContainer}>
+        <Text style={[styles.priceChangeArrow, { color: changeColor }]}>
+          {arrow}
+        </Text>
+        <Text style={[styles.priceChangeText, { color: changeColor }]}>
+          ₹{changeAmount}
+        </Text>
+      </View>
+    );
   };
 
   return (
@@ -427,16 +482,19 @@ const Index = () => {
                   </Text>
                 )}
               </View>
-              <Text
-                style={[
-                  styles.price,
-                  { color: config.priceColor || "#D4AF37" },
-                  config.fontTheme === "serif" && { fontFamily: "serif" },
-                  config.fontTheme === "classic" && { fontFamily: "monospace" },
-                ]}
-              >
-                {formatPricePerGram(calculatedRates.gold999.finalPrice)}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                  style={[
+                    styles.price,
+                    { color: config.priceColor || "#D4AF37" },
+                    config.fontTheme === "serif" && { fontFamily: "serif" },
+                    config.fontTheme === "classic" && { fontFamily: "monospace" },
+                  ]}
+                >
+                  {formatPricePerGram(calculatedRates.gold999.finalPrice)}
+                </Text>
+                {renderPriceChange(gold999Change)}
+              </View>
             </View>
           )}
 
@@ -475,16 +533,19 @@ const Index = () => {
                   </Text>
                 )}
               </View>
-              <Text
-                style={[
-                  styles.price,
-                  { color: config.priceColor || "#D4AF37" },
-                  config.fontTheme === "serif" && { fontFamily: "serif" },
-                  config.fontTheme === "classic" && { fontFamily: "monospace" },
-                ]}
-              >
-                {formatPricePerGram(calculatedRates.gold916.finalPrice)}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                  style={[
+                    styles.price,
+                    { color: config.priceColor || "#D4AF37" },
+                    config.fontTheme === "serif" && { fontFamily: "serif" },
+                    config.fontTheme === "classic" && { fontFamily: "monospace" },
+                  ]}
+                >
+                  {formatPricePerGram(calculatedRates.gold916.finalPrice)}
+                </Text>
+                {renderPriceChange(gold916Change)}
+              </View>
             </View>
           )}
 
@@ -523,16 +584,19 @@ const Index = () => {
                   </Text>
                 )}
               </View>
-              <Text
-                style={[
-                  styles.price,
-                  { color: config.priceColor || "#D4AF37" },
-                  config.fontTheme === "serif" && { fontFamily: "serif" },
-                  config.fontTheme === "classic" && { fontFamily: "monospace" },
-                ]}
-              >
-                {formatPricePerGram(calculatedRates.silver999.finalPrice)}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                  style={[
+                    styles.price,
+                    { color: config.priceColor || "#D4AF37" },
+                    config.fontTheme === "serif" && { fontFamily: "serif" },
+                    config.fontTheme === "classic" && { fontFamily: "monospace" },
+                  ]}
+                >
+                  {formatPricePerGram(calculatedRates.silver999.finalPrice)}
+                </Text>
+                {renderPriceChange(silver999Change)}
+              </View>
             </View>
           )}
 
@@ -570,16 +634,19 @@ const Index = () => {
                   </Text>
                 )}
               </View>
-              <Text
-                style={[
-                  styles.price,
-                  { color: config.priceColor || "#D4AF37" },
-                  config.fontTheme === "serif" && { fontFamily: "serif" },
-                  config.fontTheme === "classic" && { fontFamily: "monospace" },
-                ]}
-              >
-                {formatPricePerGram(calculatedRates.silver925.finalPrice)}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                  style={[
+                    styles.price,
+                    { color: config.priceColor || "#D4AF37" },
+                    config.fontTheme === "serif" && { fontFamily: "serif" },
+                    config.fontTheme === "classic" && { fontFamily: "monospace" },
+                  ]}
+                >
+                  {formatPricePerGram(calculatedRates.silver925.finalPrice)}
+                </Text>
+                {renderPriceChange(silver925Change)}
+              </View>
             </View>
           )}
         </View>
@@ -930,20 +997,37 @@ const styles = StyleSheet.create({
   },
   footerValue: {
     fontSize: 14,
-    color: "#A1A1A1",
-    lineHeight: 20,
+    color: "#D1D1D1",
   },
   footerValueRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 6,
+    alignItems: "center",
+    marginTop: 5,
   },
   footerBullet: {
+    fontSize: 16,
     color: "#D4AF37",
-    fontSize: 18,
     marginRight: 8,
-    marginTop: -2,
+  },
+  priceChangeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  priceChangeArrow: {
+    fontSize: 24,
     fontWeight: "bold",
+    marginRight: 6,
+  },
+  priceChangeText: {
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
 

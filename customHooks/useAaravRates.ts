@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useFetch from "./useFetch";
 
 export interface AaravRateData {
@@ -19,6 +19,7 @@ export const useAaravRates = () => {
   } = useFetch<string>(AARAV_API_URL, { responseType: "text" });
   const [lastValidData, setLastValidData] = useState<AaravRateData>({});
   const [parsedError, setParsedError] = useState<string | null>(null);
+  const fetchCountRef = useRef(0);
 
   useEffect(() => {
     if (!rawData) return;
@@ -52,6 +53,15 @@ export const useAaravRates = () => {
       });
 
       if (newData.silver || newData.gold) {
+        fetchCountRef.current += 1;
+        console.log('=== AARAV API PARSED DATA ===> ', {
+          fetchCount: fetchCountRef.current,
+          silverPrice: newData.silver,
+          goldPrice: newData.gold,
+          silverWithGST: newData.silverWithGST,
+          goldWithGST: newData.goldWithGST,
+          timestamp: new Date().toISOString(),
+        });
         setLastValidData(newData);
       }
       setParsedError(null);
@@ -62,10 +72,15 @@ export const useAaravRates = () => {
   }, [rawData]);
 
   useEffect(() => {
+    console.log('=== AARAV API INTERVAL STARTED ===> Fetching every 10 seconds');
     const interval = setInterval(() => {
+      console.log('=== AARAV API REFETCH TRIGGERED ===> ', new Date().toISOString());
       refetch();
     }, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      console.log('=== AARAV API INTERVAL CLEARED ===>');
+      clearInterval(interval);
+    };
   }, [refetch]);
 
   return { data: lastValidData, error: fetchError || parsedError };

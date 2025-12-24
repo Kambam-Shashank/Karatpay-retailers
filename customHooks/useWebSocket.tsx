@@ -45,7 +45,10 @@ export default function useWebSocket(uri: string) {
       ws.onmessage = (event) => {
         try {
           const parsedData = JSON.parse(event.data);
-          console.log("WebSocket raw data:", parsedData);
+          console.log("=== WEBSOCKET DATA FROM live.karatpay.in ===> ", {
+            raw: parsedData,
+            timestamp: new Date().toISOString(),
+          });
 
           if (parsedData && typeof parsedData === "object") {
             let validData: GoldPriceData | null = null;
@@ -67,7 +70,7 @@ export default function useWebSocket(uri: string) {
             }
 
             if (validData) {
-              console.log("Valid WebSocket data:", validData);
+              console.log(validData)
               setData(validData);
               setLastValidData(validData);
             }

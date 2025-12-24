@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function useFetch<T = any>(
   url: string,
@@ -13,7 +13,7 @@ export default function useFetch<T = any>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -37,11 +37,11 @@ export default function useFetch<T = any>(
     } finally {
       setLoading(false);
     }
-  };
+  }, [url, options.responseType]);
 
   useEffect(() => {
     fetchData();
-  }, [url]);
+  }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
 }
